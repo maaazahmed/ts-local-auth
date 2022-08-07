@@ -10,12 +10,6 @@ type EmailValidation = UserCollection | null;
 type SaveDateType = UserCollection[] | null;
 
 
-
-
-
-
-
-
 function inputVerification(data: SignUpData): boolean {
   if (
     data.username !== "" &&
