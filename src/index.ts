@@ -6,6 +6,15 @@ interface SignUpData {
   password: string;
   confirmPassword: string;
 }
+type EmailValidation = UserCollection | null;
+type SaveDateType = UserCollection[] | null;
+
+
+
+
+
+
+
 
 function inputVerification(data: SignUpData): boolean {
   if (
@@ -17,9 +26,22 @@ function inputVerification(data: SignUpData): boolean {
     return true;
   }
   return false;
+};
+
+function emailValidation(newMail: string, users: UserCollection[]) {
+  const user = users.find((x) => x.email == newMail);
+  console.log(user);
+  if (user) {
+    return user;
+  }
+  return null;
 }
 
-class SignUp {
+function userId(): string {
+  return "id_" + Date.now().toString(36) + Math.random().toString(36).substr(2);
+};
+
+class Authentication {
   username: HTMLInputElement;
   password: HTMLInputElement;
   confirmPassword: HTMLInputElement;
@@ -36,30 +58,54 @@ class SignUp {
     this.submitButtom = document.querySelector(
       "#create-button"
     ) as HTMLButtonElement;
+  };
+};
+
+class SignUp extends Authentication {
+  constructor() {
+    super();
     this.assignEventListeners();
-  }
+  };
+  private assignEventListeners() {
+    this.submitButtom.addEventListener("click", this.submit.bind(this));
+  };
 
   submit() {
     const signUpData: SignUpData = {
       username: (this.username.value = "Maaz"),
       password: (this.password.value = "pass"),
       confirmPassword: (this.confirmPassword.value = "pass"),
-      email: (this.email.value = "email"),
+      email: this.email.value,
     };
 
     const varification: boolean = inputVerification(signUpData);
     if (varification) {
-      const fetched = fetching.storeData(signUpData);
-    } else {
-      console.log("all fields are required");
-    }
-  }
-
-  private assignEventListeners() {
-    console.log(this.submitButtom);
-    this.submitButtom.addEventListener("click", this.submit.bind(this));
-  }
-}
+      const fetched = fetching.getData();
+      const userID = userId();
+      const user: UserCollection = {
+        userID: userID,
+        username: signUpData.username,
+        password: signUpData.password,
+        email: signUpData.email,
+      };
+      if (fetched && fetched.length) {
+        const isEmailAvailble: EmailValidation = emailValidation(
+          user.email,
+          fetched
+        );
+        if (isEmailAvailble) {
+          alert("Email is not available please use deffernt email address");
+        } else {
+          fetched.push(user);
+          fetching.saveData(fetched);
+        }
+      } else {
+        fetched.push(user);
+        fetching.saveData(fetched);
+      };
+    };
+  };
+};
 
 class UserCollection {
   constructor(
@@ -81,49 +127,27 @@ class HandleData {
     } else {
       this.instance = new HandleData();
       return this.instance;
-    }
-  }
-  public getData() {
-    const data = localStorage.getItem("userList");
-    return data;
-  }
-
-  checkUser(data: UserCollection, fetched: UserCollection[]): boolean {
-    const isValidEmail = fetched.find((x) => x.email === data.email);
-    if (!isValidEmail) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  saveData(data: UserCollection[]) {
-    localStorage.setItem("userList", JSON.stringify(this.userList));
-  }
-
-  public async storeData(data: SignUpData) {
-    const userData: UserCollection = {
-      username: data.username,
-      email: data.email,
-      password: data.password,
-      userID: (
-        Math.random() *
-        1023423423423 *
-        Math.random() *
-        1324232350
-      ).toString(),
     };
-    const fetched = await this.getData();
-    if (!fetched) {
-      this.userList.push(userData);
-    } else {
-      this.userList = JSON.parse(fetched);
-      this.userList.push(userData);
-      console.log(this.userList, "fetched");
-    }
-    this.saveData(this.userList);
-  }
-}
+  };
 
-const signUp = new SignUp();
+  public getData(): UserCollection[] {
+    const data = localStorage.getItem("userList");
+    if (data) {
+      console.log(data, "-000000000000000000");
+      return JSON.parse(data);
+    } else {
+      return [];
+    };
+  };
+
+  saveData(data: SaveDateType) {
+    if (data) {
+      localStorage.setItem("userList", JSON.stringify(data));
+    } else {
+      localStorage.setItem("userList", JSON.stringify(this.userList));
+    };
+  };
+};
+
 const fetching = HandleData.getInstance();
+const signUp = new SignUp();
