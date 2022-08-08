@@ -1,5 +1,4 @@
 "use strict";
-console.log("app is starting");
 function inputVerification(data) {
     if (data.username !== "" &&
         data.email !== "" &&
@@ -9,7 +8,12 @@ function inputVerification(data) {
     }
     return false;
 }
-;
+function inputVerificationForSignin(data) {
+    if (data.userEmail !== "" && data.userPassword !== "") {
+        return true;
+    }
+    return false;
+}
 function emailValidation(newMail, users) {
     const user = users.find((x) => x.email == newMail);
     console.log(user);
@@ -21,7 +25,6 @@ function emailValidation(newMail, users) {
 function userId() {
     return "id_" + Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
-;
 class Authentication {
     constructor() {
         this.username = document.querySelector("#user-name");
@@ -29,20 +32,19 @@ class Authentication {
         this.confirmPassword = document.querySelector("#confirm-password");
         this.email = document.querySelector("#user-email");
         this.submitButtom = document.querySelector("#create-button");
+        this.loginEmail = document.querySelector("#email");
+        this.userPass = document.querySelector("#pass");
+        this.loninButton = document.querySelector("#login-button");
     }
-    ;
 }
-;
 class SignUp extends Authentication {
     constructor() {
         super();
         this.assignEventListeners();
     }
-    ;
     assignEventListeners() {
         this.submitButtom.addEventListener("click", this.submit.bind(this));
     }
-    ;
     submit() {
         const signUpData = {
             username: (this.username.value = "Maaz"),
@@ -74,13 +76,37 @@ class SignUp extends Authentication {
                 fetched.push(user);
                 fetching.saveData(fetched);
             }
-            ;
         }
-        ;
     }
-    ;
 }
-;
+class SignIn extends Authentication {
+    constructor() {
+        super();
+        this.assignEventListeners();
+    }
+    assignEventListeners() {
+        this.loninButton.addEventListener("click", this.submit.bind(this));
+    }
+    submit() {
+        const email = this.loginEmail.value;
+        const password = this.userPass.value;
+        const varification = inputVerificationForSignin({
+            userEmail: email,
+            userPassword: email,
+        });
+        if (varification) {
+            const userData = fetching.getData();
+            const validation = emailValidation(email, userData);
+            if ((validation === null || validation === void 0 ? void 0 : validation.password) == password) {
+                console.log(validation, "---------------");
+                fetching.setCurrentUser(validation);
+            }
+            else {
+                alert("Invalid email or passwrod");
+            }
+        }
+    }
+}
 class UserCollection {
     constructor(userID, username, email, password) {
         this.userID = userID;
@@ -101,9 +127,7 @@ class HandleData {
             this.instance = new HandleData();
             return this.instance;
         }
-        ;
     }
-    ;
     getData() {
         const data = localStorage.getItem("userList");
         if (data) {
@@ -113,9 +137,7 @@ class HandleData {
         else {
             return [];
         }
-        ;
     }
-    ;
     saveData(data) {
         if (data) {
             localStorage.setItem("userList", JSON.stringify(data));
@@ -123,10 +145,11 @@ class HandleData {
         else {
             localStorage.setItem("userList", JSON.stringify(this.userList));
         }
-        ;
     }
-    ;
+    setCurrentUser(user) {
+        localStorage.setItem("currentUser", JSON.stringify(user));
+    }
 }
-;
 const fetching = HandleData.getInstance();
 const signUp = new SignUp();
+const signIn = new SignIn();
